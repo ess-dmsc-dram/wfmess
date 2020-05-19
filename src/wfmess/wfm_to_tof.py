@@ -371,10 +371,9 @@ def to_tof(input_files=None, entries=None, plot=False):
 
 
     # Compute WFM frame shifts and boundaries from TOF diagram
-    info, choppers = v20.setup()
-    frame_boundaries, frame_gaps, frame_shifts = get_frame_parameters(info, choppers)
-
-
+    v20setup = v20.setup()
+    frame_boundaries, frame_gaps, frame_shifts = get_frame_parameters(
+        v20setup["info"], v20setup["choppers"])
 
     if isinstance(input_files, str):
         input_files = input_files.split(",")

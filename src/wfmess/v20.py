@@ -54,4 +54,4 @@ def setup():
     # Midpoint between WFM choppers which acts as new source distance for stitched data
     info["wfm_choppers_midpoint"] = 0.5 * (choppers["WFM1"].distance + choppers["WFM2"].distance)
 
-    return info, choppers
+    return {"info": info, "choppers": choppers}

@@ -97,7 +97,7 @@ def get_frame_parameters(info, choppers):
         frame_boundaries.append([x4, x5])
 
         # Compute frame shifts from fastest neutrons in frame
-        frame_shifts.append((info["wfm_choppers_midpoint"] - b2)/a2)
+        frame_shifts.append(-(info["wfm_choppers_midpoint"] - b2)/a2)
 
         ax.fill([x0, x1, x4, x5], [y0, y1, y4, y5], alpha=0.3, color=colors[i])
         ax.plot([x0, x5], [y0, y5], color=colors[i], lw=1)
@@ -123,4 +123,4 @@ def get_frame_parameters(info, choppers):
     ax.set_ylabel("Distance [m]")
     fig.savefig("tof_diagram.pdf", bbox_inches="tight")
 
-    return np.array(frame_boundaries), np.array(frame_gaps), -np.array(frame_shifts)
+    return np.array(frame_boundaries), np.array(frame_gaps), np.array(frame_shifts)
