@@ -1,3 +1,4 @@
-from .wfm_to_tof import to_tof, get_frame_parameters
-# from .tofdiagram import get_frame_parameters
+from .wfm_to_tof import to_tof
+from .wfmess import get_frame_parameters, stitch
 from . import v20
+

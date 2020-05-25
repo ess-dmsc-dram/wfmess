@@ -4,7 +4,7 @@ from matplotlib.patches import Rectangle
 
 
 
-def frames_analytical(instrument=None, plot=False, verbose=True):
+def frames_analytical(instrument=None, plot=False):
 
     info = instrument["info"]
     choppers = instrument["choppers"]
@@ -106,11 +106,17 @@ def frames_analytical(instrument=None, plot=False, verbose=True):
         ax.set_ylabel("Distance [m]")
         fig.savefig("tof_diagram.pdf", bbox_inches="tight")
 
-    if verbose:
-        # Print results
-        print("The frame boundaries are:", frame_boundaries)
-        frame_gaps = [0.5*(frame_boundaries[i][1]+frame_boundaries[i+1][0]) for i in range(len(frame_boundaries)-1)]
-        print("The frame gaps are:", frame_gaps)
-        print("The frame shifts are:", frame_shifts)
+    # if verbose:
+    #     # Print results
+    #     print("The frame boundaries are:", frame_boundaries)
+    #     frame_gaps = [0.5*(frame_boundaries[i][1]+frame_boundaries[i+1][0]) for i in range(len(frame_boundaries)-1)]
+    #     print("The frame gaps are:", frame_gaps)
+    #     print("The frame shifts are:", frame_shifts)
 
-    return np.array(frame_boundaries), np.array(frame_gaps), np.array(frame_shifts)
+    frame_params = {"left_edges": np.array([f[0] for f in frame_boundaries]),
+                    "right_edges": np.array([f[1] for f in frame_boundaries]),
+                    "gaps": np.array(frame_gaps),
+                    "shifts": np.array(frame_shifts)}
+
+
+    return frame_params

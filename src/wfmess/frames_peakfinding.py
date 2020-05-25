@@ -1,41 +1,5 @@
 """
-  Convert WFM events to time-of-flight
-
-  This script takes in a V20 data file which contains a WFM run that has already
-  been processed by the pulse aggregator (https://github.com/ess-dmsc/pulse-aggregator)
-  and converts the neutron event timings to real time-of-flight.
-
-  Author: Neil Vaytet
-  Email: neil.vaytet@esss.se
-  Date: 05/2019
-
-  Usage:
-
-    - python convert_wfm_events_to_tof.py -i nicos_00000185.nxs -o nicos_00000185_tof.nxs
-
-  Options (*=required):
-
-   * -i , --input : type=str : Input file to convert
-   * -o , --output : type=str : Output file name
-     -e , --entries : type=str , default="entry/event_data/,entry/monitor_1/" :
-                      Entries to process, separated by commas
-     -p , --plot : default=False : Plot histograms?
-     -g , --gauss : type=int , default=4 : Kernel width for Gaussian smoothing
-     -n , --nbins : type=int , default=500 : Number of bins for histogramming
-     -k , --peak-prominence : type=float , default=0.04 : Peak prominence for
-                              scipy.signal.find_peaks
-     -t , --inter-frame-threshold : type=float , default=0.2 : Maximum value
-                                    for the signal between frames. If the
-                                    signal exceeds this value, then we assume
-                                    this is not a true frame gap but a
-                                    fluctuation of the data inside a frame
-
-  Example:
-
-    - python convert_wfm_events_to_tof.py -i nicos_00000185.nxs
-        -o nicos_00000185_tof.nxs -p -e entry/raw_event_data -g 6 -n 1000
-        -k 0.08 -t 0.1
-
+  Find WFM frames using peak-finding.
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -104,14 +68,7 @@ def frames_peakfinding(data=None, instrument=None, initial_shift=-6630,
 
     """
 
-    # colors = ['b', 'k', 'g', 'r', 'cyan', 'magenta']
-
-    # # Get time offsets from file
-    # time_offset = np.array(input_file[entry + "event_time_offset"][...],
-    #                        dtype=np.float64, copy=True) / 1.0e3
-
     frame_shifts = _make_frame_shifts(initial_shift, _get_frame_shifts(instrument))
-
     
     if "events" in data:
         # Find min and max in event time-of-arrival (TOA)
@@ -135,26 +92,6 @@ def frames_peakfinding(data=None, instrument=None, initial_shift=-6630,
         # Histogram the events for plotting
         fig, ax = plt.subplots()
         ax.plot(x, y, color='k', label="Raw data", lw=3)
-
-
-
-
-
-
-
-
-        # individual_frames = [ [] for _ in range(instrument["info"]["nframes"]) ]
-        # for i in range(len(frame_gaps)):
-        #     lab = "Frame boundaries" if i == 0 else None
-        #     ax[0].axvline(frame_gaps[i], ls="dashed", color="r", label=lab)
-
-
-
-        # xmin = np.amin(x)
-        # xmax = np.amax(x)
-        # dx = 0.05 * (xmax - xmin)
-        # xmin -= dx
-        # xmax += dx
 
     # Gaussian smooth the data
     y = gaussian_filter1d(y, gsmooth)
@@ -221,9 +158,6 @@ def frames_peakfinding(data=None, instrument=None, initial_shift=-6630,
         frame_boundaries[i, 1] = g - 0.5 * inter_frame_gaps[i]
         frame_boundaries[i+1, 0] = g + 0.5 * inter_frame_gaps[i]
 
-
-
-
     # Plot the diagnostics
     if plot:
         peaks = np.concatenate([[i_start], peaks, [i_end]])
@@ -244,4 +178,9 @@ def frames_peakfinding(data=None, instrument=None, initial_shift=-6630,
         ax.set_ylim(yl)
         fig.savefig("frames_peakfinding.pdf", bbox_inches="tight")
 
-    return frame_boundaries, frame_gaps, np.array(frame_shifts)
+    frame_params = {"left_edge": np.array([f[0] for f in frame_boundaries]),
+                    "right_edge": np.array([f[1] for f in frame_boundaries]),
+                    "gaps": np.array(frame_gaps),
+                    "shifts": np.array(frame_shifts)}
+
+    return frame_params
