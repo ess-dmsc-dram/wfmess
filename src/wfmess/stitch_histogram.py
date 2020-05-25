@@ -2,6 +2,13 @@ import numpy as np
 from .tools import centers_to_edges, edges_to_centers
 
 def stitch_histogram(x=None, y=None, frame_params=None):
+    """
+    Stitch a N-dimensional array containing histogram data.
+
+    :param x: The array containing the tof x-coordinate.
+    :param y: The N-D array containing the neutron counts to be stitched.
+    :param frame_params: A dict containing the WFM frame parameters.
+    """
 
     nx = y.shape[-1]
     if len(x) == y.shape[-1]:
