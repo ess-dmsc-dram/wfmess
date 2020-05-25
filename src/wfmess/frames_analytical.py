@@ -109,9 +109,10 @@ def frames_analytical(instrument=None, plot=False):
     # if verbose:
     #     # Print results
     #     print("The frame boundaries are:", frame_boundaries)
-    #     frame_gaps = [0.5*(frame_boundaries[i][1]+frame_boundaries[i+1][0]) for i in range(len(frame_boundaries)-1)]
     #     print("The frame gaps are:", frame_gaps)
     #     print("The frame shifts are:", frame_shifts)
+
+    frame_gaps = [0.5*(frame_boundaries[i][1]+frame_boundaries[i+1][0]) for i in range(len(frame_boundaries)-1)]
 
     frame_params = {"left_edges": np.array([f[0] for f in frame_boundaries]),
                     "right_edges": np.array([f[1] for f in frame_boundaries]),

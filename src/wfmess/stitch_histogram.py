@@ -15,7 +15,7 @@ def stitch_histogram(x=None, y=None, frame_params=None):
     dx = (xmax - xmin) / float(nx)
 
     # Make new array for stitched image
-    stitched = np.zeros_like(y)
+    stitched = np.zeros_like(y, dtype=np.float)
 
     # Go through all original image columns and shift according to frame shifts.
     # We find to which bin the left and right pixel edges would be shifted, and
