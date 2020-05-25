@@ -46,106 +46,7 @@ import matplotlib.pyplot as plt
 from shutil import copyfile
 from os.path import join
 from . import v20
-from .frames_analytical import frames_analytical
-from .frames_peakfinding import frames_peakfinding
-
-
-# def _tof_shifts(pscdata, psc_frequency=0):
-#     cut_out_centre = np.reshape(pscdata,(len(pscdata)//2, 2)).mean(1)
-#     cut_out_diffs = np.ediff1d(cut_out_centre)
-#     return cut_out_diffs / (360.0*psc_frequency)
-
-
-# def get_frame_shifts(input_file, chopper_entries=None):
-#     """
-#     This function generates a list of proper shifting parameters from psc data.
-
-#     :param input_file: An open hdf file handle
-#     :param chopper_entries: Comma-separated list of entries for WFM choppers
-#     :return: List of relative frame shifts in microseconds.
-#     """
-
-#     time_units = {"us": 1.0e6, "ns": 1.0e9}
-
-#     # Read chopper timings and compute frequencies
-#     freqs = []
-#     try:
-#         for c in chopper_entries:
-#             tdc = input_file[join(c, "top_dead_center/time")]
-#             timings = np.array(tdc[...], dtype=np.float64, copy=True)
-#             freqs.append(np.mean(time_units[tdc.attrs["units"].decode("utf-8")] / np.ediff1d(timings)))
-#     except KeyError:
-#         print("Warning: chopper timings not found in file. Using default "
-#               "value for WFM chopper frequencies.")
-#         freqs = [70.0] * 2
-#     print("WFM chopper frequencies are:", freqs)
-
-#     # Read chopper cut-out angles
-#     angles = []
-#     try:
-#         for c in chopper_entries:
-#             angles.append(np.array(input_file[join(c, "slit_edges")][...],
-#                                    dtype=np.float64, copy=True))
-#     except KeyError:
-#         print("Warning: chopper cut-out angles not found in file. Using "
-#               "default values.")
-#         # Definition V20 for wfm pulse shaping chopper 1 (closest to source)
-#         # and chopper 2 (farthest from source). The sorted angles of all edges
-#         # are in degrees. First entry is start angle of the first cut-out
-#         # second entry is end angle of first cut-out
-#         angles = [np.array([15.0, 98.71, 109.7, 155.49, 170.79, 208.26,
-#                             227.56, 257.32, 280.33, 302.91, 329.37, 345.3]),
-#                   np.array([15.0, 80.04, 91.03, 141.1 ,156.4 ,197.88,
-#                             217.18, 250.67, 269.97, 299.73, 322.74, 345.])]
-
-#     # factor of 0.5 * 1.0e6 (taking mean and converting to microseconds)
-#     relative_shifts = (_tof_shifts(angles[0], psc_frequency=freqs[0])  + \
-#                        _tof_shifts(angles[1], psc_frequency=freqs[1])) * \
-#                        5.0e+05
-#     return -relative_shifts
-
-
-# def make_frame_shifts(initial_shift, other_shifts=None):
-#     """
-#     This function constructs a list of proper shifting parameters for wavelength frames.
-#     It expects the initial shift in microseconds, followed by an optional list/tuple of
-#     shifts relative to the previous one. For example:
-
-#         frame_shifts = make_frame_shifts(-6000, [-2000, -2000])
-#         # results in -6000,-8000,-10000
-
-#     The default other_shifts are the currently correct shifts for the V20 beamline at HZB.
-
-#     :param initial_shift: Shift to apply to first wavelength frame in microseconds.
-#     :param other_shifts: Iterable of shift increments with respect to the previous value
-#                           (initial_shift for first value in list), also in microseconds.
-#     :return: List of absolute frame shifts in microseconds.
-#     """
-#     frame_shift_increments = [initial_shift] + list(other_shifts)
-#     frame_shifts = [sum(frame_shift_increments[:i + 1]) for i in
-#                     range(len(frame_shift_increments))]
-
-#     print("The frame_shifts are:", frame_shifts)
-
-#     return frame_shifts
-
-
-def get_frame_number(x, frames):
-    """
-    Find the number of the frame the input x (TOF) coordinate belongs to.
-    We define here a gap_width which represents the size of the gaps between
-    the frames. Any event inside a gap is discarded.
-    """
-    n = 0
-    # Half-width of the gap between frames in microseconds
-    gap_width = 800.0
-    for f in frames:
-        if x > f:
-            n += 1
-        if np.abs(x - f) < gap_width:
-            n = -1
-            break
-    return n
+from .get_frame_parameters import get_frame_parameters
 
 
 def convert(input_file, entry=None, plot=False, frame_gaps=None, frame_shifts=None, nbins=5000):
@@ -368,20 +269,14 @@ def convert(input_file, entry=None, plot=False, frame_gaps=None, frame_shifts=No
     return
 
 
-def get_frame_parameters(data=None, instrument=None, plot=False):
-    if data is not None:
-        return frames_peakfinding(data=data, instrument=instrument, plot=plot)
-    else:
-        return frames_analytical(instrument=instrument, plot=plot)
+# def get_frame_parameters(data=None, instrument=None, plot=False):
+#     if data is not None:
+#         return frames_peakfinding(data=data, instrument=instrument, plot=plot)
+#     else:
+#         return frames_analytical(instrument=instrument, plot=plot)
 
 
-def to_tof(input_files=None, entries=None, plot=False):
-
-
-    # Compute WFM frame shifts and boundaries from TOF diagram
-    v20setup = v20.setup()
-    frame_boundaries, frame_gaps, frame_shifts = get_frame_parameters(v20setup)
-        # v20setup["info"], v20setup["choppers"])
+def stitch_files(input_files=None, entries=None, plot=False, frame_params=None):
 
     if isinstance(input_files, str):
         input_files = input_files.split(",")
@@ -391,7 +286,7 @@ def to_tof(input_files=None, entries=None, plot=False):
     for f in input_files:
 
         ext = ".{}".format(f.split(".")[-1])
-        outfile = f.replace(ext, "_tof" + ext)
+        outfile = f.replace(ext, "_stitched" + ext)
 
         copyfile(f, outfile)
 
@@ -410,6 +305,13 @@ def to_tof(input_files=None, entries=None, plot=False):
 
         # Loop through entries and shift event tofs
         with h5py.File(outfile, "r+") as outf:
+
+            # Compute WFM frame shifts and boundaries from V20 setup
+            if frame_params is None:
+                v20setup = v20.setup(filename=outf)
+                frame_params = get_frame_parameters(instrument=v20setup)
+                # v20setup["info"], v20setup["choppers"])
+
             for e in entries:
                 print("==================")
                 print("Entry:", e)
