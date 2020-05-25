@@ -46,7 +46,8 @@ import matplotlib.pyplot as plt
 from shutil import copyfile
 from os.path import join
 from . import v20
-from .tofdiagram import get_frame_parameters
+from .frames_analytical import frames_analytical
+from .frames_peakfinding import frames_peakfinding
 
 
 # def _tof_shifts(pscdata, psc_frequency=0):
@@ -367,13 +368,20 @@ def convert(input_file, entry=None, plot=False, frame_gaps=None, frame_shifts=No
     return
 
 
+def get_frame_parameters(data=None, instrument=None, plot=False):
+    if data is not None:
+        return frames_peakfinding(data=data, instrument=instrument, plot=plot)
+    else:
+        return frames_analytical(instrument=instrument, plot=plot)
+
+
 def to_tof(input_files=None, entries=None, plot=False):
 
 
     # Compute WFM frame shifts and boundaries from TOF diagram
     v20setup = v20.setup()
-    frame_boundaries, frame_gaps, frame_shifts = get_frame_parameters(
-        v20setup["info"], v20setup["choppers"])
+    frame_boundaries, frame_gaps, frame_shifts = get_frame_parameters(v20setup)
+        # v20setup["info"], v20setup["choppers"])
 
     if isinstance(input_files, str):
         input_files = input_files.split(",")
@@ -402,12 +410,10 @@ def to_tof(input_files=None, entries=None, plot=False):
 
         # Loop through entries and shift event tofs
         with h5py.File(outfile, "r+") as outf:
-            # # Find wfm frame shifts from chopper data
-            # frame_shifts = make_frame_shifts(
-            #     -6330, get_frame_shifts(outf, choppers.split(",")))
             for e in entries:
                 print("==================")
                 print("Entry:", e)
                 convert(input_file=outf, entry=e, plot=plot,
                                frame_gaps=frame_gaps,
                                frame_shifts=frame_shifts)
+
