@@ -11,7 +11,7 @@ setuptools.setup(
     description="Wave-Frame Multiplication data reduction for ESS",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/nvaytet/wfmess",
+    url="https://github.com/ess-dmsc-dram/wfmess",
     packages=setuptools.find_packages("src"),
     package_dir={"": "src"},
     classifiers=[
