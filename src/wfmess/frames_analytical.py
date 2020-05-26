@@ -104,7 +104,11 @@ def frames_analytical(instrument=None, plot=False):
         # Save the figure
         ax.set_xlabel("Time [microseconds]")
         ax.set_ylabel("Distance [m]")
-        fig.savefig("tof_diagram.pdf", bbox_inches="tight")
+        if isinstance(plot, str):
+            figname = plot
+        else:
+            figname = "frames_analytical.pdf"
+        fig.savefig(figname, bbox_inches="tight")
 
     # if verbose:
     #     # Print results
@@ -114,10 +118,10 @@ def frames_analytical(instrument=None, plot=False):
 
     frame_gaps = [0.5*(frame_boundaries[i][1]+frame_boundaries[i+1][0]) for i in range(len(frame_boundaries)-1)]
 
-    frame_params = {"left_edges": np.array([f[0] for f in frame_boundaries]),
+    frames = {"left_edges": np.array([f[0] for f in frame_boundaries]),
                     "right_edges": np.array([f[1] for f in frame_boundaries]),
                     "gaps": np.array(frame_gaps),
                     "shifts": np.array(frame_shifts)}
 
 
-    return frame_params
+    return frames

@@ -1,13 +1,13 @@
 import numpy as np
 from .tools import centers_to_edges, edges_to_centers
 
-def stitch_histogram(x=None, y=None, frame_params=None):
+def stitch_histogram(x=None, y=None, frames=None):
     """
     Stitch a N-dimensional array containing histogram data.
 
     :param x: The array containing the tof x-coordinate.
     :param y: The N-D array containing the neutron counts to be stitched.
-    :param frame_params: A dict containing the WFM frame parameters.
+    :param frames: A dict containing the WFM frame parameters.
     """
 
     nx = y.shape[-1]
@@ -29,16 +29,16 @@ def stitch_histogram(x=None, y=None, frame_params=None):
     # spread the counts evenly over these bins.
     for i in range(nx):
         ok = 0
-        for j in range(len(frame_params["shifts"])):
-            if xe[i] > frame_params["left_edges"][j] and xe[i] < frame_params["right_edges"][j]:
+        for j in range(len(frames["shifts"])):
+            if xe[i] > frames["left_edges"][j] and xe[i] < frames["right_edges"][j]:
                 # compute new index after time shift
-                idl = int((xe[i] + frame_params["shifts"][j] - xmin) / dx)
+                idl = int((xe[i] + frames["shifts"][j] - xmin) / dx)
                 ok += 1
                 break
-        for j in range(len(frame_params["shifts"])):
-            if xe[i+1] > frame_params["left_edges"][j] and xe[i+1] < frame_params["right_edges"][j]:
+        for j in range(len(frames["shifts"])):
+            if xe[i+1] > frames["left_edges"][j] and xe[i+1] < frames["right_edges"][j]:
                 # compute new index after time shift
-                idr = int((xe[i+1] + frame_params["shifts"][j] - xmin) / dx)
+                idr = int((xe[i+1] + frames["shifts"][j] - xmin) / dx)
                 ok += 1
                 break
         if ok == 2:

@@ -176,11 +176,15 @@ def frames_peakfinding(data=None, instrument=None, initial_shift=-6630,
             fc='lightgray', ec='none', zorder=-10))
         ax.set_xlim(xl)
         ax.set_ylim(yl)
-        fig.savefig("frames_peakfinding.pdf", bbox_inches="tight")
+        if isinstance(plot, str):
+            figname = plot
+        else:
+            figname = "frames_peakfinding.pdf"
+        fig.savefig(figname, bbox_inches="tight")
 
-    frame_params = {"left_edge": np.array([f[0] for f in frame_boundaries]),
+    frames = {"left_edge": np.array([f[0] for f in frame_boundaries]),
                     "right_edge": np.array([f[1] for f in frame_boundaries]),
                     "gaps": np.array(frame_gaps),
                     "shifts": np.array(frame_shifts)}
 
-    return frame_params
+    return frames

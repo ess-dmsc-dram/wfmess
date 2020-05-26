@@ -14,9 +14,9 @@ def _get_frame_number(x, ledges, redges):
             break
     return n
 
-def stitch_events(events=None, frame_params=None, plot=False, nbins=5000):
+def stitch_events(events=None, frames=None, plot=False, nbins=5000):
     """
-
+    This function takes in a list of events
     """
 
     # Get time offsets
@@ -39,7 +39,7 @@ def stitch_events(events=None, frame_params=None, plot=False, nbins=5000):
         x = 0.5 * (edges[:-1] + edges[1:])
         fig, ax = plt.subplots(2, 1, figsize=(8, 8))
         ax[0].plot(x, y, color='k', label="Raw data")
-        for g in frame_params["gaps"]:
+        for g in frames["gaps"]:
             ax[0].axvline(x=g, color="r")
 
 
@@ -47,7 +47,7 @@ def stitch_events(events=None, frame_params=None, plot=False, nbins=5000):
     frames_x = edges_to_centers(np.linspace(xmin, xmax, nbins + 1))
     frame_id = np.array(
         [get_frame_number(
-            x, frame_params["left_edges"], frame_params["right_edges"])
+            x, frames["left_edges"], frames["right_edges"])
          for x in frames_x])
     frame_bin_width = frames_x[1] - frames_x[0]
 
@@ -82,7 +82,7 @@ def stitch_events(events=None, frame_params=None, plot=False, nbins=5000):
             fid = frame_id[int((time_offset[j] - xmin) / frame_bin_width)]
             # If the frame id is -1, then we are in a frame gap and event is discarded
             if fid > -1:
-                ttt = time_offset[j] + frame_params["shifts"][fid]
+                ttt = time_offset[j] + frames["shifts"][fid]
                 if ttt > 0.0:
                     stitched["tof"][idx] = ttt
                     if process_ids:
@@ -113,6 +113,10 @@ def stitch_events(events=None, frame_params=None, plot=False, nbins=5000):
         ax[1].set_ylabel("Counts")
         ax[0].legend()
         ax[1].legend()
-        fig.savefig("stitched_events.pdf", bbox_inches="tight")
+        if isinstance(plot, str):
+            figname = plot
+        else:
+            figname = "stitched_events.pdf"
+        fig.savefig(figname, bbox_inches="tight")
 
     return stitched
